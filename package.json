@@ -10,11 +10,15 @@
     "eject": "expo eject"
   },
   "dependencies": {
+    "@react-navigation/bottom-tabs": "^6.2.0",
+    "@react-navigation/native": "^6.0.8",
     "expo": "~44.0.0",
     "expo-status-bar": "~1.2.0",
     "react": "17.0.1",
     "react-dom": "17.0.1",
     "react-native": "0.64.3",
+    "react-native-gesture-handler": "^2.3.2",
+    "react-native-screens": "^3.13.1",
     "react-native-web": "0.17.1"
   },
   "devDependencies": {
