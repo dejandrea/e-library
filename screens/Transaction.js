@@ -81,16 +81,16 @@ export default class TransactionScreen extends Component {
           var {bookName, studentName } = this.state
           this.initiateBookIssue(bookId, studentId, bookName, studentName);
 
-          ToastAndroid.show("Livro entregue ao aluno!",ToastAndroid.SHORT)
-          // Alert.alert("Livro entregue ao aluno!")
+          //ToastAndroid.show("Livro entregue ao aluno!",ToastAndroid.SHORT)
+          Alert.alert("Livro entregue ao aluno!")
         } else {
           var {bookName, studentName } = this.state
           this.initiateBookReturn(bookId, studentId, bookName, studentName);
-          ToastAndroid.show("Livro retornado à biblioteca!",ToastAndroid.SHORT)
-          // Alert.alert("Livro retornado à biblioteca!")
+          //ToastAndroid.show("Livro retornado à biblioteca!",ToastAndroid.SHORT)
+          Alert.alert("Livro retornado à biblioteca!")
         }
       });
-  }
+  }   
 
   getBookDetails = bookId => {
     bookId = bookId.trim();
