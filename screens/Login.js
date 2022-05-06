@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import firebase from "firebase";
 
+// importando as imagens que serão usadas na tela
 const bgImage = require("../assets/background2.png");
 const appIcon = require("../assets/appIcon.png");
 const appName = require("../assets/appName.png");
@@ -25,21 +26,23 @@ export default class LoginScreen extends React.Component {
     }
   }
 
+  // função para realizar autenticação/login no firebase
   handleLogin = (email, senha) => {
     firebase
-      .auth()
-      .signInWithEmailAndPassword(email, senha)
-      .then(() => {
-        this.props.navigation.navigate("BottomTab")
+      .auth()//autorização
+      .signInWithEmailAndPassword(email, senha) //usando email e senha
+      .then(() => { 
+        this.props.navigation.navigate("BottomTab") //se der certo vai para a BottomTab
       })
       .catch(error => {
-        Alert.alert(error.message)
+        Alert.alert(error.message) //se não der certo mostra um erro na tela
       })
   }
 
   render() {
-    const { email, senha } = this.state
+    const { email, senha } = this.state //carregando os states nas varáveis
     return (
+      //construindo a tela de login
       <KeyboardAvoidingView behavior='padding' style={styles.container}>
         <ImageBackground source={bgImage} style={styles.bgImage} >
           <View style={styles.upperContainer}>

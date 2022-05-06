@@ -8,6 +8,7 @@ import { createSwitchNavigator, createAppContainer } from 'react-navigation';
 
 
 export default class App extends Component{
+  //criando os states
   constructor(){
     super()
     this.state = {
@@ -15,6 +16,7 @@ export default class App extends Component{
     }
   }
 
+  //função que carrega as fontes
   async loadFonts(){
     await Font.loadAsync({
       Rajdhani_600SemiBold:Rajdhani_600SemiBold
@@ -22,15 +24,16 @@ export default class App extends Component{
     this.setState({fontLoaded:true})
   }
 
+  //carregando as fontes na montagem do componente
   componentDidMount(){
     this.loadFonts()
   }
   
   render(){
-    const {fontLoaded} = this.state
+    const {fontLoaded} = this.state //carregando o state na variável
     if (fontLoaded) {
       return(
-        <AppContainer />
+        <AppContainer />//se a fonte carregar mostrar a tela
       )
     }
     return null
@@ -38,6 +41,7 @@ export default class App extends Component{
   }
 }
 
+//criando as rotas
 const AppSwitchNavigator = createSwitchNavigator(
   {
     Login:{
@@ -48,7 +52,7 @@ const AppSwitchNavigator = createSwitchNavigator(
     }
   },
   {
-    initialRouteName:"Login"
+    initialRouteName:"Login" //definindo login como a tela inicial
   }
 )
 

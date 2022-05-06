@@ -12,10 +12,12 @@ export default class SearchScreen extends Component {
             searchText: ""
         };
     }
+    //Coletando os dados na montagem do componente
     componentDidMount = async () => {
         this.getTransactions();
     };
 
+    //função para coletar 10 transações no banco de dados
     getTransactions = () => {
         db.collection("transactions")
             .limit(10)
@@ -30,36 +32,37 @@ export default class SearchScreen extends Component {
             });
     };
 
+    //realizando uma busca
     handleSearch = async text => {
-        var enteredText = text.toUpperCase().split("");
-        text = text.toUpperCase();
+        var enteredText = text.toUpperCase().split("");//convertendo o texto em UPPERCASE e dividindo as letras em um array
+        text = text.toUpperCase(); //convertendo o texto em upperCase
         this.setState({
-            allTransactions: []
+            allTransactions: [] //zerando as transações
         });
         if (!text) {
-            this.getTransactions();
+            this.getTransactions(); //se o texto estiver em branco chamo as transações
         }
 
-        if (enteredText[0] === "B") {
+        if (enteredText[0] === "B") { //se o texto começar como B busco pelo BookId
             db.collection("transactions")
                 .where("book_id", "==", text)
                 .get()
                 .then(snapshot => {
                     snapshot.docs.map(doc => {
                         this.setState({
-                            allTransactions: [...this.state.allTransactions, doc.data()],
+                            allTransactions: [...this.state.allTransactions, doc.data()],//Jogo no array todas as transações com o livro em questão
                             lastVisibleTransaction: doc
                         });
                     });
                 });
-        } else if (enteredText[0] === "S") {
+        } else if (enteredText[0] === "S") { //se o texto começar com S busco pelo StudentId
             db.collection("transactions")
                 .where("student_id", "==", text)
                 .get()
                 .then(snapshot => {
                     snapshot.docs.map(doc => {
                         this.setState({
-                            allTransactions: [...this.state.allTransactions, doc.data()],
+                            allTransactions: [...this.state.allTransactions, doc.data()],//Jogo no array todas as transações com o estudante em questão
                             lastVisibleTransaction: doc
                         });
                     });
@@ -67,6 +70,7 @@ export default class SearchScreen extends Component {
         }
     };
 
+    //carregando mais informações para a tela
     fetchMoreTransactions = async text => {
         var enteredText = text.toUpperCase().split("");
         text = text.toUpperCase();
@@ -101,6 +105,7 @@ export default class SearchScreen extends Component {
         }
     };
 
+    //renderizando cada item da lista
     renderItem = ({ item, i }) => {
         var date = item.date
             .toDate()

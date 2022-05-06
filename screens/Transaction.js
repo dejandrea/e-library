@@ -16,6 +16,7 @@ import { BarCodeScanner } from "expo-barcode-scanner";
 import db from "../config"
 import firebase from "firebase";
 
+//carregando as imagens da tela
 const bgImage = require("../assets/background2.png");
 const appIcon = require("../assets/appIcon.png");
 const appName = require("../assets/appName.png");
@@ -123,6 +124,7 @@ export default class TransactionScreen extends Component {
     //   });
   }
 
+  //coleta os detalhes do livro
   getBookDetails = bookId => {
     bookId = bookId.trim();
     db.collection("books")
@@ -137,6 +139,7 @@ export default class TransactionScreen extends Component {
       });
   };
 
+  //coleta os detalhes do estudante
   getStudentDetails = studentId => {
     studentId = studentId.trim();
     db.collection("students")
@@ -151,8 +154,9 @@ export default class TransactionScreen extends Component {
       });
   };
 
+  //cria uma transação de entrega
   initiateBookIssue = async (bookId, studentId, bookName, studentName) => {
-    //adicionar uma transação
+    //adicionar uma transação no banco
     db.collection('transactions').add({
       student_id: studentId,
       student_name: studentName,
@@ -161,7 +165,7 @@ export default class TransactionScreen extends Component {
       date: firebase.firestore.Timestamp.now().toDate(),
       transaction_type: "issue"
     })
-    //alterar o status de um livro
+    //alterar o status de um livro para indisponível
     db.collection("books")
       .doc(bookId)
       .update({
@@ -175,15 +179,16 @@ export default class TransactionScreen extends Component {
         number_of_books_issued: firebase.firestore.FieldValue.increment(1)
       })
 
-    //atualizando o estado local
+    //zerando os estados locais
     this.setState({
       bookId: "",
       studentId: ""
     })
   };
 
+  //cria uma transação de retorno
   initiateBookReturn = async (bookId, studentId, bookName, studentName) => {
-    //adicionar uma transação
+    //adicionar uma transação de retorno
     db.collection("transactions").add({
       student_id: studentId,
       student_name: studentName,
@@ -192,7 +197,7 @@ export default class TransactionScreen extends Component {
       date: firebase.firestore.Timestamp.now().toDate(),
       transaction_type: "return"
     })
-    //alterar status do livro
+    //alterar status do livro para disponível
     db.collection("books")
       .doc(bookId)
       .update({
@@ -211,28 +216,30 @@ export default class TransactionScreen extends Component {
     })
   };
 
+  //verifica a disponibilidade do livro
   checkBookAvailability = async bookId => {
+    //coletamos os dados
     const bookRef = await db
       .collection("books")
       .where("book_id", "==", bookId)
       .get()
 
-      //coletamos os dados e verificamos se o livro existe
-      //se não, retornamos falso
-      //se sim retornamos a disponibilidade atual do livro
+      //verificamos se o livro existe
     var transactionType = ""
-    if (bookRef.docs.length == 0) {
+    if (bookRef.docs.length == 0) { //se não existir o livro, retornamos falso
       transactionType = false
     } else {
+      //se existir, retornamos a disponibilidade atual do livro
       bookRef.docs.map(doc => {
         //se o livro estiver disponível, o tipo da transação será issue
-        //se não, será return
+        //se não estiver disponível, será return
         transactionType = doc.data().is_book_available ? "issue" : "return"
       })
     }
     return transactionType
   }
 
+  //verifica e elegibilidade do aluno para retirar um livro
   checkStudentElegibilityForBookIssue = async studentId => {
     const studentRef = await db
       .collection("students")
@@ -240,7 +247,7 @@ export default class TransactionScreen extends Component {
       .get()
 
       //verificamos se o estudante existe
-      //se não informamos que o aluno não existe
+      //se não informamos que o aluno não existe e zeramos os states
     var isStudentElegible = ""
     if (studentRef.docs.length == 0) {
       this.setState({
@@ -251,13 +258,11 @@ export default class TransactionScreen extends Component {
       Alert.alert("O ID do aluno não existe em nosso banco de dados!")
     } else {
       //se o estudante existir verificamos se ele pegou menos de dois livros
-      //se sim retornamos true para a elegibilidade do aluno
-      //se não retornamos falso e informamos ao usuário que o aluno esta com 2 livros alugados
       studentRef.docs.map(doc =>{
-        if (doc.data().number_of_books_issued < 2) {
+        if (doc.data().number_of_books_issued < 2) {  //se sim retornamos true para a elegibilidade do aluno
           isStudentElegible = true
         } else {
-          isStudentElegible = false
+          isStudentElegible = false //se não retornamos falso, informamos ao usuário que o aluno esta com 2 livros alugados e zeramos os states
           Alert.alert("O aluno já retirou 2 livros!")
           this.setState({
             bookId:"",
@@ -269,6 +274,7 @@ export default class TransactionScreen extends Component {
     return isStudentElegible
   }
 
+  //verifica e elegibilidade do aluno para devolver um livro
   checkStudentElegibilityForBookReturn = async (bookId, studentId) => {
     //coletando as informações no banco de dados
     const transactionRef = await db
@@ -276,19 +282,16 @@ export default class TransactionScreen extends Component {
       .where("book_id","==",bookId)
       .limit(1)
       .get()
-
-      //verificamos se o livro foi retirado por esse estudante
-      //se sim, retornamos true
-      //se não, retornamos false e informamos que o livro não foi retirado por esse estudante.
+  
     var isStudentElegible = ""
     transactionRef.docs.map(doc => {
-      var lastBookTransaction = doc.data()
-      if (lastBookTransaction.student_id === studentId) {
-        isStudentElegible = true;
+      var lastBookTransaction = doc.data() //mapeamos os dados da ultima transação realizada com o livro em questão
+      if (lastBookTransaction.student_id === studentId) {  //verificamos se o livro foi retirado por esse estudante
+        isStudentElegible = true; //se sim, retornamos true
       } else {
-        isStudentElegible = false
+        isStudentElegible = false //se não, retornamos false e informamos que o livro não foi retirado por esse estudante.
         Alert.alert("O livro não foi retirado por esse aluno!")
-        this.setState({
+        this.setState({ //zeramos os states
           bookId:"",
           studentId:""
         })
@@ -299,7 +302,7 @@ export default class TransactionScreen extends Component {
   }
 
   render() {
-    const { bookId, studentId, domState, scanned } = this.state;
+    const { bookId, studentId, domState, scanned } = this.state; //extraindo informações do state para as variáveis
     if (domState !== "normal") {
       return (
         <BarCodeScanner
@@ -317,6 +320,7 @@ export default class TransactionScreen extends Component {
           </View>
           <View style={styles.lowerContainer}>
             <View style={styles.textinputContainer}>
+              {/* Campo para o ID do livro */}
               <TextInput
                 style={styles.textinput}
                 placeholder={"ID do Livro"}
@@ -324,6 +328,7 @@ export default class TransactionScreen extends Component {
                 value={bookId}
                 onChangeText={text => this.setState({ bookId: text })}
               />
+              {/* Botão para scanear o livro */}
               <TouchableOpacity
                 style={styles.scanbutton}
                 onPress={() => this.getCameraPermissions("bookId")}
@@ -332,6 +337,7 @@ export default class TransactionScreen extends Component {
               </TouchableOpacity>
             </View>
             <View style={[styles.textinputContainer, { marginTop: 25 }]}>
+              {/* Campo para o ID do estudante */}
               <TextInput
                 style={styles.textinput}
                 placeholder={"ID do Estudante"}
@@ -339,6 +345,7 @@ export default class TransactionScreen extends Component {
                 value={studentId}
                 onChangeText={text => this.setState({ studentId: text })}
               />
+              {/* Botão para scanear o ID do estudante */}
               <TouchableOpacity
                 style={styles.scanbutton}
                 onPress={() => this.getCameraPermissions("studentId")}
@@ -346,6 +353,7 @@ export default class TransactionScreen extends Component {
                 <Text style={styles.scanbuttonText}>Digitalizar</Text>
               </TouchableOpacity>
             </View>
+            {/* Botão enviar */}
             <TouchableOpacity style={[styles.button, { marginTop: 25 }]}
               onPress={this.handleTransaction}
             >
